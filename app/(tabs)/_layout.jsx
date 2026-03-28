@@ -46,6 +46,13 @@ export default function TabLayout() {
           ),
         }}
       />
+      {/* 👇 hide this */}
+      <Tabs.Screen
+        name="viewtrip/[tripId]"
+        options={{
+          href: null, // ✅ hides from tab bar
+        }}
+      />
     </Tabs>
   );
 }

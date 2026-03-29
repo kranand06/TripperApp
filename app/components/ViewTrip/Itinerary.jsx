@@ -4,9 +4,6 @@ import Day from "./Day";
 
 function Itinerary({ data }) {
 
-  useEffect(() => {
-    console.log(data);
-  }, [data]);
   return (
     <View style={styles.container}>
       <Text style={styles.heading}>

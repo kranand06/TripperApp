@@ -1,21 +1,25 @@
-import { View, Text, StyleSheet,Image } from "react-native";
+import { View, Text, StyleSheet, Image } from "react-native";
 import GetPhoto from "../../../services/getPhoto";
 import { useEffect, useState } from "react";
 
 export default function Info({ Data }) {
-
-    const [imageurl, setimageurl] = useState()
+  const [imageurl, setimageurl] = useState(null);
 
   useEffect(() => {
-    fetchImage();
-  }, []);
+    if (Data?.userInput?.place) {
+      setimageurl(null); // Reset image URL when place changes
+      fetchImage();
+    }
+  }, [Data]);
 
   const fetchImage = async () => {
-    const url = await GetPhoto(Data?.userInput?.place);
-    setimageurl(url);
+    try {
+      const url = await GetPhoto(Data.userInput.place);
+      setimageurl(url);
+    } catch (err) {
+      console.log("Image fetch error:", err);
+    }
   };
-
-
   return  (
     <View style={styles.container}>
       {/* Image */}

@@ -10,17 +10,25 @@ import { useRouter } from "expo-router";
 import GetPhoto from "../../services/getPhoto";
 
 export default function MyTripCard({ trip }) {
+
+
   const [image, setImage] = useState(null);
   const router = useRouter();
 
-  useEffect(() => {
+useEffect(() => {
+  if (trip?.userInput?.place) {
     fetchImage();
-  }, []);
+  }
+}, [trip]);
 
-  const fetchImage = async () => {
+const fetchImage = async () => {
+  try {
     const url = await GetPhoto(trip.userInput.place);
     setImage(url);
-  };
+  } catch (err) {
+    console.log("Image error:", err);
+  }
+};
 
   return (
     <TouchableOpacity

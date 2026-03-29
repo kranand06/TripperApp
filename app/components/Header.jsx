@@ -1,23 +1,35 @@
 import { View, Image, StyleSheet, TouchableOpacity } from "react-native";
+import { useRouter } from "expo-router";
+import useAuth from "../../hooks/useAuth"; // ✅ add this
 
 export default function Header() {
+  const { user } = useAuth(); // ✅ get user
+  const router = useRouter();
+  const name = user?.displayName || user?.email?.split("@")[0];
+
   return (
     <View style={styles.container}>
-      
+
       {/* ✅ Logo Image */}
       <Image
-        source={require("../../assets/images/logoNavbar.png")} // Ensure this path is correct
+        source={require("../../assets/images/logoNavbar.png")}
         style={styles.logo}
         resizeMode="contain"
       />
 
-      {/* Profile Icon */}
-      <TouchableOpacity>
-        <Image
-          source={{ uri: "https://i.pravatar.cc/40" }}
-          style={styles.profile}
-        />
-      </TouchableOpacity>
+      {/* ✅ Show ONLY if logged in */}
+      {user && (
+        <TouchableOpacity
+          onPress={() => router.push("/profile")}
+          activeOpacity={0.7}
+        >
+          <Image
+            source={{
+uri: `https://ui-avatars.com/api/?name=${name}&background=fb923c&color=fff&size=128`            }}
+            style={styles.profile}
+          />
+        </TouchableOpacity>
+      )}
     </View>
   );
 }
@@ -40,8 +52,15 @@ const styles = StyleSheet.create({
     height: 60,
   },
   profile: {
-    width: 35,
-    height: 35,
-    borderRadius: 50,
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: "#fff",
+    overflow: "hidden",
+    elevation: 3, // Android
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 3,
   },
 });

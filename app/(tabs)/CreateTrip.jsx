@@ -1,12 +1,13 @@
 import { useState } from "react";
-import {View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, KeyboardAvoidingView, Platform } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, KeyboardAvoidingView, Platform } from "react-native";
 import ScreenWrapper from "../components/ScreenWrapper";
 import { Ionicons } from "@expo/vector-icons";
 
 import { Budget, Traveller, AiPrompt } from "../../utils/helper";
 import chatSession from "../../services/gemini";
-import { db } from "../../services/firebase";
+import { auth, db } from "../../services/firebase";
 import { doc, setDoc } from "firebase/firestore";
+import Toast from "react-native-toast-message";
 
 import { useRouter } from "expo-router";
 
@@ -23,7 +24,12 @@ export default function CreateTrip() {
 
   const handleSubmit = async () => {
     if (!formData.place || !formData.days || !formData.budget || !formData.traveller) {
-      Alert.alert("Missing Fields", "Please fill all fields");
+      Toast.show({
+        type: "error",
+        text1: "Missing Fields",
+        text2: "Please fill all fields",
+        position: "bottom",
+      });
       return;
     }
 
@@ -39,7 +45,12 @@ export default function CreateTrip() {
       const result = JSON.parse(res.response.candidates[0].content.parts[0].text);
       await saveData(result);
     } catch (err) {
-      Alert.alert("Error", "Something went wrong");
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "Failed to generate trip",
+        position: "bottom",
+      });
       console.log(err)
     } finally {
       setLoading(false);
@@ -47,15 +58,54 @@ export default function CreateTrip() {
   };
 
   const saveData = async (data) => {
-    const docId = Date.now().toString();
+    setLoading(true);
 
-    await setDoc(doc(db, "tripper", docId), {
-      id: docId,
-      userInput: formData,
-      tripInfo: data,
-    });
+    try {
+      const docId = Date.now().toString();
+      const user = auth.currentUser;
 
-    router.push(`/viewtrip/${docId}`);
+      if (!user) {
+        Toast.show({
+          type: "error",
+          text1: "Not Logged In",
+          text2: "Please login first",
+        });
+        return;
+      }
+      const name = user.displayName || user.email.split("@")[0];
+      const userData = {
+        id: user.uid,
+        email: user.email,
+        name: user.displayName,
+       picture: `https://ui-avatars.com/api/?name=${name}&background=fb923c&color=fff`,
+      };
+      await setDoc(doc(db, "tripper", docId), {
+        id: docId,
+        tripInfo: data,
+        userDetail: userData,
+        // userId: user.uid,
+        userInput: formData,
+        userMail: user.email,
+      });
+      Toast.show({
+        type: "success",
+        text1: "Trip Created 🎉",
+        text2: "Your itinerary is ready",
+        position: "bottom",
+      });
+      setFormData({ place: "", days: "", budget: "", traveller: "" });
+      router.push(`/viewtrip/${docId}`);
+    } catch (err) {
+      Toast.show({
+        type: "error",
+        text1: "Save Failed",
+        text2: "Could not save trip",
+        position: "bottom",
+      });
+      console.log("Save error:", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

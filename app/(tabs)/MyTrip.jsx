@@ -1,35 +1,57 @@
 
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { View, Text, StyleSheet, FlatList, ActivityIndicator } from "react-native";
 import ScreenWrapper from "../components/ScreenWrapper";
-import { db } from "../../services/firebase";
+import { db, auth } from "../../services/firebase";
 import { collection, query, where, getDocs } from "firebase/firestore";
 
 import MyTripCard from "../components/MyTripCard";
+import { onAuthStateChanged } from "firebase/auth";
+import { useFocusEffect } from "expo-router";
 
 export default function MyTrip() {
   const [trips, setTrips] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+
+useFocusEffect(
+  useCallback(() => {
     getTrips();
-  }, []);
+  }, [])
+);
 
-  const getTrips = async () => {
-    try {
-      // 🔥 for now skip user filter (we’ll add auth later)
-      const q = query(collection(db, "tripper"));
-      const snapshot = await getDocs(q);
+const getTrips = async () => {
+  try {
+    const user = auth.currentUser;
 
-      const data = snapshot.docs.map((doc) => doc.data());
-      setTrips(data);
-    } catch (err) {
-      console.log("Error:", err);
-    } finally {
-      setLoading(false);
+    if (!user || !user.email) {
+      console.log("No user logged in");
+      setTrips([]);
+      return;
     }
-  };
+
+    const q = query(
+      collection(db, "tripper"),
+      where("userMail", "==", user.email)
+    );
+
+    const querySnapshot = await getDocs(q);
+
+    // ✅ collect all data first
+    const data = querySnapshot.docs.map((doc) => doc.data());
+
+    // ✅ sort descending (latest first)
+    const sortedData = data.sort((a, b) => Number(b.id) - Number(a.id));
+
+    setTrips(sortedData);
+
+  } catch (err) {
+    console.log("Error:", err);
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <ScreenWrapper>

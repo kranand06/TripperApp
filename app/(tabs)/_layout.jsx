@@ -1,8 +1,22 @@
 import { Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { Redirect } from "expo-router";
+import useAuth from "../../hooks/useAuth";
+import Toast from "react-native-toast-message";
 
 export default function TabLayout() {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return null;
+  }
+
+  if (!user) {
+    return <Redirect href="/sign-in" />;
+  }
+
   return (
+    <>
     <Tabs
       screenOptions={{
         headerShown: false,
@@ -53,6 +67,14 @@ export default function TabLayout() {
           href: null, // ✅ hides from tab bar
         }}
       />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          href: null, // ✅ hides from tab bar
+        }}
+      />
     </Tabs>
+    <Toast />
+    </>
   );
 }

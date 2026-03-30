@@ -6,7 +6,7 @@ export default function Home() {
   const router = useRouter();
 
   return (
-    <ScreenWrapper>
+    <ScreenWrapper scroll>
 
       <View style={styles.container}>
         {/* Heading */}

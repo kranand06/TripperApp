@@ -38,7 +38,8 @@ const GetPhoto = async (name) => {
         const ref = await GetPhotoData(name);
         if (!ref) {
             console.error("No reference found for the given place name.");
-            return null;
+            const htt = "https://source.unsplash.com/400x300/?travel";
+            return htt;
         }
 
         const PHOTO_REF_URL = `https://places.googleapis.com/v1/${ref}/media?maxHeightPx=1000&maxWidthPx=1000&key=${process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY}`;
